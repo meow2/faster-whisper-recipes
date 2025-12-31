@@ -41,7 +41,11 @@ def transcribe_mp3_files():
     for audio_file in audio_files:
         audio_path = os.path.join(folder_path, audio_file)
         base_name = os.path.splitext(audio_file)[0]
-        output_file = os.path.join(folder_path, f"{base_name}.txt")
+
+        # === 日時付ハンドル ===
+        now_str = datetime.now().strftime("%Y%m%d-%H%M")
+        output_filename = f"{base_name}_{now_str}.txt"
+        output_file = os.path.join(folder_path, output_filename)
 
         print(f"\n🎵 処理開始: {audio_file}")
 
