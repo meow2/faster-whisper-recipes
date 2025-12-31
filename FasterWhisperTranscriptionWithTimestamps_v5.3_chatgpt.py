@@ -6,6 +6,13 @@ from faster_whisper import WhisperModel
 
 warnings.filterwarnings("ignore")
 
+# === 設定項目 ===
+SILENCE_THRESHOLD = 2.0  # これ以上の空白があれば「（無音）」と表示する秒数
+VAD_PARAMS = dict(
+    min_silence_duration_ms=1000, # これより短い無音は無視（会話の間のポーズを切らない）
+    speech_pad_ms=500,            # 音声の前後に500msの余白を持たせる（語尾切れ防止）
+)
+# =============
 
 def format_timestamp(seconds):
     seconds = max(0, int(seconds))
@@ -51,30 +58,47 @@ def transcribe_mp3_files():
 
         start_time = time.time()
 
+        # === 文字起こし実行 ===
+        # vad_filter=Trueにしつつ、パラメータで緩く設定して語尾切れを防ぐ
         segments, info = model.transcribe(
             audio_path,
             language="ja",
             beam_size=5,
             temperature=0.0,
             condition_on_previous_text=True,
-            vad_filter=False,
-            no_speech_threshold=0.7,
+            vad_filter=True,          # 無音ループ防止のためONにする
+            vad_parameters=VAD_PARAMS, # 語尾切れ防止のための緩和設定
+            no_speech_threshold=0.6,
             chunk_length=30,
         )
 
         results = []
         full_text = ""
+        last_end_time = 0.0 # 直前のセグメントの終了時間
 
         total_duration = info.duration
         total_chunks = int(total_duration // 30) + 1
 
         for segment in segments:
             text = segment.text.strip()
+            
+            # ===== 無音判定ロジック =====
+            # 現在の開始時間 - 直前の終了時間 が 設定値を超えていたら「無音」を挿入
+            gap = segment.start - last_end_time
+            if gap >= SILENCE_THRESHOLD:
+                gap_start = format_timestamp(last_end_time)
+                gap_end = format_timestamp(segment.start)
+                results.append(f"[{gap_start} - {gap_end}] （無音）")
+            # ==========================
+
             if text:
                 start = format_timestamp(segment.start)
                 end = format_timestamp(segment.end)
                 results.append(f"[{start} - {end}] {text}")
                 full_text += text + " "
+            
+            # 次のループのために終了時間を更新
+            last_end_time = segment.end
 
             # ===== 進捗計算 =====
             processed_sec = segment.end
@@ -98,6 +122,12 @@ def transcribe_mp3_files():
                 end="\r",
                 flush=True
             )
+        
+        # 最後にファイルの末尾まで無音がある場合の処理
+        if total_duration - last_end_time >= SILENCE_THRESHOLD:
+             gap_start = format_timestamp(last_end_time)
+             gap_end = format_timestamp(total_duration)
+             results.append(f"[{gap_start} - {gap_end}] （無音）")
 
         print()  # 改行（進捗行の後）
 
