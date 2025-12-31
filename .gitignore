@@ -1,0 +1,44 @@
+# === Python ===
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === faster-whisper / whisper ===
+models/
+*.bin
+*.pt
+*.gguf
+
+# === Audio files ===
+*.wav
+*.mp3
+*.m4a
+*.aac
+*.flac
+*.ogg
+
+# === Transcription outputs ===
+*.txt
+*.srt
+*.vtt
+*.json
+
+# === Logs / temp ===
+logs/raw/
+temp/
+tmp/
+Archive/
+
+# === Jupyter ===
+.ipynb_checkpoints/
+
+# === Secrets ===
+.env
+.env.*
