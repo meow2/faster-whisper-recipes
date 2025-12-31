@@ -53,12 +53,7 @@ def transcribe_mp3_files():
             beam_size=5,
             temperature=0.0,
             condition_on_previous_text=True,
-            vad_filter=True,
-            vad_parameters=dict(
-                threshold=0.3,              # 低くすると「小さな声」も拾うようになる（デフォルト0.5）
-                min_silence_duration_ms=2000, # 2秒以上の完全な沈黙だけをカット（デフォルト2000だが明示）
-                speech_pad_ms=500           # 声の前後500msを余白として残す（削り残し防止）
-            ),
+            vad_filter=False,
             no_speech_threshold=0.6,
             chunk_length=30,
         )
