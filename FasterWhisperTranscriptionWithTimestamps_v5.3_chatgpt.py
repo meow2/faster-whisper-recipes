@@ -58,7 +58,7 @@ def transcribe_mp3_files():
             temperature=0.0,
             condition_on_previous_text=True,
             vad_filter=False,
-            no_speech_threshold=0.6,
+            no_speech_threshold=0.7,
             chunk_length=30,
         )
 
